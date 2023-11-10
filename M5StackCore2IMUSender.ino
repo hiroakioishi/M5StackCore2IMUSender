@@ -17,7 +17,7 @@ float accZ = 0.0f;
 float gyroX = 0.0f;
 float gyroY = 0.0f;
 float gyroZ = 0.0f;
-// 姿勢航法基準装置 (Attitude and Heading Reference System)
+// 姿勢方位基準システム (Attitude and Heading Reference System)
 float pitch = 0.0f;
 float roll  = 0.0f;
 float yaw   = 0.0f;
