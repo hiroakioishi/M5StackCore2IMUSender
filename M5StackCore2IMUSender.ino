@@ -1,6 +1,8 @@
 #include <M5Core2.h>
 #include "BluetoothSerial.h"
 
+// バージョン
+#define VERSION "1.1"
 // Bluetoothシリアルの名前 (PCで表示されるBluetoothデバイス名)
 #define BLUETOOTH_SERIAL_NAME "M5StackCore2BT_01"
 // FPS
@@ -21,6 +23,11 @@ float gyroZ = 0.0f;
 float pitch = 0.0f;
 float roll  = 0.0f;
 float yaw   = 0.0f;
+// ボタンA, B, Cがそれぞれ押されているかどうか
+// 1: 押されている, 0: 押されていない
+int buttonA = 0;
+int buttonB = 0;
+int buttonC = 0;
 
 // Bluetoothで値を送信するときに使用するバッファ
 char buff[60];
@@ -57,13 +64,6 @@ void loop()
   // 姿勢航法基準装置（Attitude and Heading Reference System）
   M5.IMU.getAhrsData(&pitch, &roll, &yaw);
 
-  // --- IMUの値をBluetoothで送信 ---
-  // buffに、Accel, Gyro, Ahrsの値をまとめる 
-  //sprintf(buff, "%5.2f,%5.2f,%5.2f\r\n", pitch, roll, yaw);
-  sprintf(buff, "%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f\r\n", accX, accY, accZ, gyroX, gyroY, gyroZ, pitch, roll, yaw);
-  // Bluetoothで、Accel, Gyro, Ahrs の値を送信
-  serialBT.printf(buff);
-
   // --- ボタン操作の処理 ---
   // A（左）ボタンが押されたら
   if (M5.BtnA.wasPressed())
@@ -72,6 +72,8 @@ void loop()
     M5.Lcd.setTextColor(WHITE, RED);
     // 画面の背景を赤で塗る
     M5.Lcd.fillScreen(RED);
+    // ボタンAは押されている
+    buttonA = 1;
   }
   // A（左）ボタンが離されたら
   if (M5.BtnA.wasReleased())
@@ -80,6 +82,8 @@ void loop()
     M5.Lcd.setTextColor(WHITE, BLACK);
     // 画面の背景を黒で塗る
     M5.Lcd.fillScreen(BLACK);
+    // ボタンAは押されていない
+    buttonA = 0;
   }
   // B（中）ボタンが押されたら
   if (M5.BtnB.wasPressed())
@@ -88,6 +92,8 @@ void loop()
     M5.Lcd.setTextColor(WHITE, GREEN);
     // 画面の背景を緑で塗る
     M5.Lcd.fillScreen(GREEN);
+    // ボタンBは押されている
+    buttonB = 1;
   }
   // B（中）ボタンが離されたら
   if (M5.BtnB.wasReleased())
@@ -96,6 +102,8 @@ void loop()
     M5.Lcd.setTextColor(WHITE, BLACK);
     // 画面の背景を黒で塗る
     M5.Lcd.fillScreen(BLACK);
+    // ボタンBは押されていない
+    buttonB = 0;
   }
   // C（右）ボタンが押されたら
   if (M5.BtnC.wasPressed())
@@ -104,6 +112,8 @@ void loop()
     M5.Lcd.setTextColor(WHITE, BLUE);
     // 画面の背景を青で塗る
     M5.Lcd.fillScreen(BLUE);
+    // ボタンCは押されている
+    buttonC = 1;
   }
   // C（右）ボタンが離されたら
   if (M5.BtnC.wasReleased())
@@ -112,7 +122,17 @@ void loop()
     M5.Lcd.setTextColor(WHITE, BLACK);
     // 画面の背景を黒で塗る
     M5.Lcd.fillScreen(BLACK);
+    // ボタンCは押されていない
+    buttonC = 0;
   }
+  
+  // --- IMUの値, ボタンの状態をBluetoothで送信 ---
+  // buffに、Accel, Gyro, Ahrsの値をまとめる 
+  //sprintf(buff, "%5.2f,%5.2f,%5.2f\r\n", pitch, roll, yaw);
+  sprintf(buff, "%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%d,%d,%d\r\n", accX, accY, accZ, gyroX, gyroY, gyroZ, pitch, roll, yaw, buttonA, buttonB, buttonC);
+  // Bluetoothで、Accel, Gyro, Ahrs の値を送信
+  serialBT.printf(buff);
+
 
   // --- 液晶画面にセンサーの値などの情報を表示する ---
   // 文字の色を白にセット  
@@ -123,6 +143,14 @@ void loop()
   M5.Lcd.setCursor(0, 0);
   // 文字を描画
   M5.Lcd.printf("M5STACK CORE2 IMU SENDER");
+
+  // Version
+  // 文字のサイズを 1 にセット
+  M5.Lcd.setTextSize(1);
+  // 文字の描画位置を移動
+  M5.Lcd.setCursor(0, 18);
+  // 文字を描画
+  M5.Lcd.printf("Version : %s", VERSION);
 
   // Bluetooth
   // 文字のサイズを 1 にセット
