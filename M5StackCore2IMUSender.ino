@@ -4,7 +4,7 @@
 // バージョン
 #define VERSION "1.1"
 // Bluetoothシリアルの名前 (PCで表示されるBluetoothデバイス名)
-#define BLUETOOTH_SERIAL_NAME "M5StackCore2BT_01"
+#define BLUETOOTH_SERIAL_NAME "M5StackCore2BT_DI00"
 // FPS
 #define FPS 30
 
@@ -30,7 +30,7 @@ int buttonB = 0;
 int buttonC = 0;
 
 // Bluetoothで値を送信するときに使用するバッファ
-char buff[60];
+char buff[80];
 
 // ------ 初期化 ---------------------
 void setup()
