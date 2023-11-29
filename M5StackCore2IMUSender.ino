@@ -4,7 +4,7 @@
 #include <utility/MahonyAHRS.h>
 
 // バージョン
-#define VERSION "1.1"
+#define VERSION "1.2"
 // Bluetoothシリアルの名前 (PCで表示されるBluetoothデバイス名)
 #define BLUETOOTH_SERIAL_NAME "M5StackCore2BT_DI00"
 // FPS
@@ -34,6 +34,8 @@ int buttonC = 0;
 // Bluetoothで値を送信するときに使用するバッファ
 char buff[80];
 
+// GyroZ 補正コードはこの記事を参照
+// https://qiita.com/foka22ok/items/53d5271a21313e9ddcbd
 //[追加]GyroZのデータを蓄積するための変数
 float stockedGyroZs[10];
 int stockCnt=0;
@@ -43,6 +45,9 @@ int stockedGyroZLength=0;
 // ------ 初期化 ---------------------
 void setup()
 {
+  // 保持しておくGyroZのサイズを計算
+  stockedGyroZLength = sizeof(stockedGyroZs) / sizeof(int);
+
   // 本体初期化
   M5.begin();
   // Bluetooth 初期化
