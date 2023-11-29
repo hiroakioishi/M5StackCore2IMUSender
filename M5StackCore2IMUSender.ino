@@ -1,5 +1,7 @@
 #include <M5Core2.h>
 #include "BluetoothSerial.h"
+//[追加]MahonyAHRSupdateIMU()を呼べるようにするため
+#include <utility/MahonyAHRS.h>
 
 // バージョン
 #define VERSION "1.1"
@@ -32,6 +34,12 @@ int buttonC = 0;
 // Bluetoothで値を送信するときに使用するバッファ
 char buff[80];
 
+//[追加]GyroZのデータを蓄積するための変数
+float stockedGyroZs[10];
+int stockCnt=0;
+float adjustGyroZ=0;
+int stockedGyroZLength=0;
+
 // ------ 初期化 ---------------------
 void setup()
 {
@@ -62,7 +70,24 @@ void loop()
   // ジャイロ
   M5.IMU.getGyroData(&gyroX, &gyroY, &gyroZ);
   // 姿勢航法基準装置（Attitude and Heading Reference System）
-  M5.IMU.getAhrsData(&pitch, &roll, &yaw);
+  //[変更]これは使わない
+  // M5.IMU.getAhrsData(&pitch,&roll,&yaw); 
+
+  //[追加]起動時にstockedGyroZLengthの数だけデータを貯める
+  if(stockCnt<stockedGyroZLength){
+    stockedGyroZs[stockCnt]=gyroZ;
+    stockCnt++;
+  }else{
+    if(adjustGyroZ==0){
+      for(int i=0;i<stockedGyroZLength;i++){
+        adjustGyroZ+=stockedGyroZs[i]/stockedGyroZLength;
+      }
+    }
+    //貯めたデータの平均値を使ってgyroZを補正する
+    gyroZ-=adjustGyroZ; 
+    //ここでaccelデータと補正したgyroデータを使ってpitch・roll・yawを計算する
+    MahonyAHRSupdateIMU(gyroX * DEG_TO_RAD, gyroY * DEG_TO_RAD, gyroZ * DEG_TO_RAD, accX, accY, accZ, &pitch, &roll, &yaw);
+  }
 
   // --- ボタン操作の処理 ---
   // A（左）ボタンが押されたら
