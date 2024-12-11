@@ -1,17 +1,17 @@
 #include <M5Core2.h>
-#include "BluetoothSerial.h"
+// #include "BluetoothSerial.h"
 //[追加]MahonyAHRSupdateIMU()を呼べるようにするため
 #include <utility/MahonyAHRS.h>
 
 // バージョン
-#define VERSION "1.2"
+#define VERSION "1.2_NormalSerial"
 // Bluetoothシリアルの名前 (PCで表示されるBluetoothデバイス名)
 #define BLUETOOTH_SERIAL_NAME "M5StackCore2BT_DI00"
 // FPS
 #define FPS 30
 
 // Bluetoothシリアル
-BluetoothSerial serialBT;
+// BluetoothSerial serialBT;
 
 // 加速度 (Acceleration)
 float accX = 0.0f;
@@ -51,7 +51,8 @@ void setup()
   // 本体初期化
   M5.begin();
   // Bluetooth 初期化
-  serialBT.begin(BLUETOOTH_SERIAL_NAME);
+  // serialBT.begin(BLUETOOTH_SERIAL_NAME);
+  Serial.begin(9600);
   // 0.5秒待機
   delay(500);
  
@@ -161,7 +162,8 @@ void loop()
   //sprintf(buff, "%5.2f,%5.2f,%5.2f\r\n", pitch, roll, yaw);
   sprintf(buff, "%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%5.2f,%d,%d,%d\r\n", accX, accY, accZ, gyroX, gyroY, gyroZ, pitch, roll, yaw, buttonA, buttonB, buttonC);
   // Bluetoothで、Accel, Gyro, Ahrs の値を送信
-  serialBT.printf(buff);
+  // serialBT.printf(buff);
+  Serial.printf(buff);
 
 
   // --- 液晶画面にセンサーの値などの情報を表示する ---
