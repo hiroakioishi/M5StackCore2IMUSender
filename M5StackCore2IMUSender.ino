@@ -1,17 +1,11 @@
 #include <M5Core2.h>
-// #include "BluetoothSerial.h"
 //[追加]MahonyAHRSupdateIMU()を呼べるようにするため
 #include <utility/MahonyAHRS.h>
 
 // バージョン
 #define VERSION "1.2_NormalSerial"
-// Bluetoothシリアルの名前 (PCで表示されるBluetoothデバイス名)
-#define BLUETOOTH_SERIAL_NAME "M5StackCore2BT_DI00"
 // FPS
 #define FPS 30
-
-// Bluetoothシリアル
-// BluetoothSerial serialBT;
 
 // 加速度 (Acceleration)
 float accX = 0.0f;
@@ -50,8 +44,7 @@ void setup()
 
   // 本体初期化
   M5.begin();
-  // Bluetooth 初期化
-  // serialBT.begin(BLUETOOTH_SERIAL_NAME);
+  // シリアル初期化
   Serial.begin(9600);
   // 0.5秒待機
   delay(500);
