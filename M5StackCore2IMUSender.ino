@@ -1,13 +1,21 @@
 #include <M5Core2.h>
 //[追加]MahonyAHRSupdateIMU()を呼べるようにするため
 #include <utility/MahonyAHRS.h>
+//[追加]Bluetooth（クラシック / SPP）でシリアル通信するためのライブラリ（ESP32 標準）
+#include <BluetoothSerial.h>
 
 // バージョン
-#define VERSION "1.3_NormalSerial"
+#define VERSION "1.3_Bluetooth"
 // シリアル通信の速度（Unity側の BaudRate と同じにする）
+// ※ Bluetooth の場合、速度はこの値に関係なく決まるが、USBシリアル用にそのまま残す
 #define SERIAL_BAUD_RATE 115200
-// シリアル通信時の名前
-#define SERIAL_NAME "M5StackCore2_DI00"
+// Bluetooth のデバイス名（PC のペアリング画面にこの名前で表示される）
+#define SERIAL_NAME "M5StackCore2_DI01"
+// USBシリアルにも同じデータを送るかどうか（1: 送る, 0: 送らない）
+#define ALSO_SEND_USB_SERIAL 1
+
+// Bluetooth シリアル
+BluetoothSerial SerialBT;
 
 // --- 更新間隔 ---
 // 姿勢の計算に使う MahonyAHRS ライブラリは、「1秒に25回（40ミリ秒ごと）呼ばれる」前提で
@@ -149,6 +157,8 @@ void setup()
   M5.begin();
   // シリアル初期化
   Serial.begin(SERIAL_BAUD_RATE);
+  // Bluetooth シリアル初期化（SERIAL_NAME の名前で PC から見えるようになる）
+  SerialBT.begin(SERIAL_NAME);
   // 0.5秒待機
   delay(500);
 
@@ -271,12 +281,20 @@ void loop()
     buttonC = 0;
   }
 
-  // --- IMUの値, ボタンの状態をUSBシリアルで送信 ---
+  // --- IMUの値, ボタンの状態を Bluetooth（と USBシリアル）で送信 ---
   // buffに、Accel, Gyro, Ahrs, ボタンの値をまとめる
   snprintf(buff, sizeof(buff), "%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%d\r\n",
            accX, accY, accZ, gyroX, gyroY, gyroZ, pitch, roll, yaw, buttonA, buttonB, buttonC);
-  // USBシリアルで送信
+  // Bluetooth で送信（PC と接続されているときだけ送る。未接続のときに送るとバッファが溜まって遅くなるため）
+  bool btConnected = SerialBT.hasClient();
+  if (btConnected)
+  {
+    SerialBT.print(buff);
+  }
+#if ALSO_SEND_USB_SERIAL
+  // USBシリアルでも送信（ケーブル接続時のデバッグ用）
   Serial.print(buff);
+#endif
 
 
   // --- 液晶画面にセンサーの値などの情報を表示する ---
@@ -303,13 +321,27 @@ void loop()
   // 文字の描画位置を移動
   M5.Lcd.setCursor(0, 40);
   // 文字を描画
-  M5.Lcd.print("Connection");
+  M5.Lcd.print("Connection (Bluetooth)");
   // 文字のサイズを 2 にセット
   M5.Lcd.setTextSize(2);
   // 文字の描画位置を移動
   M5.Lcd.setCursor(0, 52);
   // 文字を描画
   M5.Lcd.print(SERIAL_NAME);
+  // 接続状態を表示（接続中: 緑, 待機中: 黄）
+  M5.Lcd.setTextSize(1);
+  M5.Lcd.setCursor(0, 72);
+  if (btConnected)
+  {
+    M5.Lcd.setTextColor(GREEN, BLACK);
+    M5.Lcd.print("CONNECTED          ");
+  }
+  else
+  {
+    M5.Lcd.setTextColor(YELLOW, BLACK);
+    M5.Lcd.print("WAITING FOR PC...  ");
+  }
+  M5.Lcd.setTextColor(WHITE, BLACK);
 
   // Acceleration
   // 文字のサイズを 1 にセット
